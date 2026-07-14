@@ -43,11 +43,12 @@ clients, or any secret/API key.**
   project's pattern of an `ai/claude_client.py`-style wrapper with prompts
   as named constants, not inline strings.
 - **Repo**: public on GitHub, named `Lightweight-SIEM`.
+- **Dashboard frontend**: React + TypeScript + Vite. Built and verified
+  running end to end against the backend (see
+  `.claude/skills/run-lightweight-siem/`) — no longer open.
 
 ## Not Yet Decided
 
-- Frontend framework for the dashboard (leaning React + TypeScript + Vite —
-  confirm before investing heavily).
 - Hosting target for the backend (candidate: same NemoClaw self-hosted
   server used for Shadow IT Scanner, vs. a managed cloud host — matters once
   this needs to be reliable for paying subscribers with uptime expectations).
@@ -59,6 +60,13 @@ clients, or any secret/API key.**
 ---
 
 ## Architecture (target shape)
+
+Current build reality vs. this target: README.md's feature table is the
+source of truth for what's actually implemented. As of now, `models/`
+only has `Alert` (not yet `User`/`FamilyLink`/`Subscription` — those come
+with the auth/consent flow, not built yet), and `detection/heuristics.py`
+is fully implemented while `claude_analyzer.py`/`url_reputation.py` remain
+stubs (external API/provider decisions still open, see "Not Yet Decided").
 
 ```
 Lightweight-SIEM/

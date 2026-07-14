@@ -3,6 +3,7 @@
 *.env.local
 
 # Python
+*.db
 __pycache__/
 *.py[cod]
 .venv/

@@ -10,8 +10,10 @@ This is **not** a traditional enterprise SIEM. It's a small, focused
 detection + alerting pipeline built for one household relationship: one
 protected person, one or more monitors.
 
-> Status: early scaffold. Nothing here is deployed or handling real user
-> data yet. See [docs/ROADMAP.md](docs/ROADMAP.md) for sequencing.
+> Status: the heuristic detection engine, a minimal scoring API, and a
+> working dashboard are built and verified running end to end locally.
+> Nothing is deployed or handling real user data yet. See
+> [docs/ROADMAP.md](docs/ROADMAP.md) for sequencing.
 
 ---
 
@@ -39,18 +41,19 @@ Status legend: ✅ done · 🚧 in progress · 📋 planned · ⏸️ deferred (
 
 | Feature | Status | Notes |
 |---|---|---|
-| Project scaffold (CLAUDE.md, docs, folder structure) | ✅ | This commit. |
-| Email OAuth integration (Gmail) | 📋 | `backend/app/integrations/gmail_client.py` |
+| Project scaffold (CLAUDE.md, docs, folder structure) | ✅ | |
+| Phishing heuristic scoring engine | ✅ | `backend/app/detection/heuristics.py` — sender/link brand impersonation, IP-literal and punycode links, URL shorteners, abused TLDs, urgency/credential-harvesting language, free-webmail-claiming-to-be-a-bank. 13 unit tests. |
+| Email-scoring API + Alert persistence | ✅ | `POST /api/v1/emails/score`, `GET /api/v1/alerts` — SQLAlchemy models, SQLite for dev. 3 integration tests. |
+| Monitor web dashboard (React + TypeScript + Vite) | ✅ | `dashboard/` — alert list + a "test the detection engine" form wired to the live API. Verified end to end in a real browser (see `.claude/skills/run-lightweight-siem/`). |
+| Email OAuth integration (Gmail) | 📋 | `backend/app/integrations/gmail_client.py` — needs real OAuth credentials, not yet started |
 | Email OAuth integration (Outlook/Microsoft Graph) | 📋 | `backend/app/integrations/outlook_client.py` |
-| Phishing heuristic scoring engine | 📋 | `backend/app/detection/heuristics.py` |
-| URL/link reputation checking | 📋 | Threat intel source TBD — VirusTotal / PhishTank / Safe Browsing |
+| URL/link reputation checking (external threat intel) | 📋 | Threat intel source TBD — VirusTotal / PhishTank / Safe Browsing. Local URL heuristics (no external calls) already live in the scoring engine above. |
 | Claude-generated risk narrative | 📋 | Only invoked after a heuristic flag, per privacy design |
-| Browser extension (Chrome/Edge, Manifest V3) | 📋 | `browser-extension/` |
-| Monitor ↔ protected-person account linking | 📋 | Invite/consent flow |
+| Browser extension (Chrome/Edge, Manifest V3) | 📋 | `browser-extension/` — manifest + stubs only, no logic yet |
+| Monitor ↔ protected-person account linking | 📋 | Invite/consent flow, requires auth (not built) |
 | Alerting: push notifications | 📋 | |
 | Alerting: SMS (Twilio) | 📋 | |
 | Alerting: email | 📋 | |
-| Monitor web dashboard | 📋 | Framework not yet finalized |
 | Subscription billing | 📋 | Stripe assumed, not confirmed |
 | Native mobile app (Android) | ⏸️ | Phase 2 — device-level notification + SMS scanning |
 | Native mobile app (iOS) | ⏸️ | Phase 2+ — no SMS access on iOS; app would cover email/browser only unless Apple opens new APIs |
@@ -123,7 +126,9 @@ Lightweight-SIEM/
 
 ---
 
-## Getting Started (backend)
+## Getting Started
+
+### Backend
 
 ```bash
 cd backend
@@ -131,10 +136,23 @@ python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
+pytest -v                     # 16 tests as of this writing
 ```
 
 Requires environment variables — see `backend/.env.example` once secrets
 integrations land. Never commit a real `.env` file; this is a public repo.
+Uses SQLite (`dev.db`, gitignored) for local dev — swappable via
+`DATABASE_URL`.
+
+### Dashboard
+
+```bash
+cd dashboard
+npm install
+npm run dev        # http://localhost:5173, expects the backend on :8000
+```
+
+CORS is already configured on the backend for `localhost:5173`.
 
 ---
 
@@ -143,7 +161,7 @@ integrations land. Never commit a real `.env` file; this is a public repo.
 - **Backend**: Python 3.11+, FastAPI
 - **Detection**: rule-based heuristics + Claude API for risk narratives
 - **Browser extension**: Manifest V3 (Chrome/Edge)
-- **Dashboard**: TBD (leaning React + TypeScript)
+- **Dashboard**: React + TypeScript + Vite
 - **Billing**: Stripe (assumed, not yet confirmed)
 - **Alerting**: Twilio (SMS), web push, transactional email
 
