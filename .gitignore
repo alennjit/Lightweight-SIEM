@@ -1,0 +1,28 @@
+# Secrets — never commit real env files, this is a public repo
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node (browser-extension, dashboard)
+node_modules/
+dist/
+build/
+.parcel-cache/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
