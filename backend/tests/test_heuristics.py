@@ -1,4 +1,13 @@
-from app.detection.heuristics import FLAG_THRESHOLD, score_email
+import pytest
+
+from app.detection.heuristics import (
+    CATEGORY_DANGEROUS_LINK,
+    CATEGORY_IMPERSONATION,
+    CATEGORY_SCAM_REQUEST,
+    CATEGORY_SUSPICIOUS_SENDER,
+    FLAG_THRESHOLD,
+    score_email,
+)
 
 
 def test_clean_email_is_not_flagged() -> None:
@@ -140,3 +149,109 @@ def test_score_is_capped_between_one_and_ten() -> None:
     assert 1 <= result.score <= 10
     assert result.score == 10
     assert result.flagged
+
+
+# --- Scam-pattern rules and categories -------------------------------------
+
+@pytest.mark.parametrize(
+    ("sender", "subject", "body"),
+    [
+        (
+            "parish-office-news.com",
+            "Quick favor - are you available?",
+            "Hi, I need you to pick up a gift card for me today. Reply as soon as possible, I will pay you back.",
+        ),
+        (
+            "gmail.com",
+            "Are you free?",
+            "I'm in a meeting and can't talk. I need you to buy 4 Google Play cards of $100 each and "
+            "send me the codes. Keep this between us.",
+        ),
+    ],
+)
+def test_gift_card_scam_is_flagged(sender: str, subject: str, body: str) -> None:
+    result = score_email(sender_domain=sender, subject=subject, links=[], body=body)
+    assert result.flagged
+    assert CATEGORY_SCAM_REQUEST in result.categories
+
+
+@pytest.mark.parametrize(
+    ("sender", "subject", "body"),
+    [
+        ("target.com", "Holiday gift cards are here", "Give the perfect gift. Buy a Target gift card in any amount."),
+        ("gmail.com", "Thanks for the birthday gift card!", "Grandma, thank you so much for the gift card! I used it to buy books."),
+    ],
+)
+def test_ordinary_gift_card_mail_is_not_flagged(sender: str, subject: str, body: str) -> None:
+    result = score_email(sender_domain=sender, subject=subject, links=[], body=body)
+    assert not result.flagged
+    assert CATEGORY_SCAM_REQUEST not in result.categories
+
+
+def test_fake_renewal_callback_scam_is_flagged() -> None:
+    result = score_email(
+        sender_domain="gmail.com",
+        subject="Norton 360 auto-renewal invoice #88213",
+        links=[],
+        body="Your subscription has been renewed for $349.99. If you did not authorize this, "
+        "call our billing desk at (888) 555-0142 to cancel.",
+    )
+    assert result.flagged
+    assert result.categories == [CATEGORY_IMPERSONATION, CATEGORY_SCAM_REQUEST]
+    assert any("phone number" in s and "dollar amount" in s for s in result.signals)
+
+
+def test_geek_squad_lookalike_sender_is_flagged() -> None:
+    result = score_email(
+        sender_domain="geeksquad-billing.com",
+        subject="Your Geek Squad renewal of $399.99 has been processed",
+        links=[],
+        body="If you did not authorize this charge call us immediately to cancel and receive a refund.",
+    )
+    assert result.score >= 8
+    assert CATEGORY_SCAM_REQUEST in result.categories
+
+
+@pytest.mark.parametrize(
+    ("sender", "subject", "body"),
+    [
+        ("bestbuy.com", "Your order confirmation",
+         "Thanks for your order! To cancel or change it, visit your account. Questions? Call us at 1-888-237-8289."),
+        ("comcast.net", "Your bill is ready",
+         "Your Xfinity invoice is ready. Payment of $89.99 will be charged on 11/02 via autopay."),
+        ("amazon.com", "Your refund has been processed",
+         "We've issued a refund of $24.99 to your original payment method."),
+    ],
+)
+def test_ordinary_receipts_and_bills_are_not_flagged(sender: str, subject: str, body: str) -> None:
+    result = score_email(sender_domain=sender, subject=subject, links=[], body=body)
+    assert not result.flagged
+
+
+def test_suspicious_sender_tld_contributes() -> None:
+    result = score_email(
+        sender_domain="rewards-center.top",
+        subject="You've been selected for a $500 grocery reward",
+        links=["https://bit.ly/claim-500-reward"],
+        body="Claim your reward before it expires.",
+    )
+    assert result.flagged
+    assert result.categories == [CATEGORY_SUSPICIOUS_SENDER, CATEGORY_DANGEROUS_LINK]
+
+
+@pytest.mark.parametrize("domain", ["googlegroups.com", "firstbank.com", "startups.com"])
+def test_short_brand_names_inside_ordinary_words_are_not_impersonation(domain: str) -> None:
+    result = score_email(sender_domain=domain, subject="Weekly update", links=[], body="Here is the news.")
+    assert not result.flagged
+
+
+@pytest.mark.parametrize("domain", ["irs-refund-portal.com", "ups-tracking.info"])
+def test_short_brand_names_as_whole_tokens_are_still_impersonation(domain: str) -> None:
+    result = score_email(sender_domain=domain, subject="Weekly update", links=[], body="Here is the news.")
+    assert result.flagged
+    assert result.categories == [CATEGORY_IMPERSONATION]
+
+
+def test_clean_email_has_no_categories() -> None:
+    result = score_email(sender_domain="example.com", subject="Hello", links=[], body="See you Sunday.")
+    assert result.categories == []
