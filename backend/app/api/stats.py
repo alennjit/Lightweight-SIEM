@@ -3,8 +3,10 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_viewed_person
 from app.api.schemas import CategoryCountOut, DailyCountOut, ProtectionHistoryOut
 from app.core.db import get_db
+from app.models.user import User
 from app.services.scan_history import build_history
 
 router = APIRouter(prefix="/api/v1", tags=["stats"])
@@ -13,10 +15,11 @@ router = APIRouter(prefix="/api/v1", tags=["stats"])
 @router.get("/stats/history", response_model=ProtectionHistoryOut)
 def protection_history(
     days: int = Query(default=30, ge=1, le=365),
+    person: User | None = Depends(get_viewed_person),
     db: Session = Depends(get_db),
 ) -> ProtectionHistoryOut:
     """Daily emails-checked vs. threats-caught counts plus a breakdown by threat category."""
-    history = build_history(db, days)
+    history = build_history(db, person.id if person else None, days)
     return ProtectionHistoryOut(
         days=history.days,
         first_scan_at=history.first_scan_at,

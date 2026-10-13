@@ -2,56 +2,31 @@
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from datetime import datetime, timedelta, timezone
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, inspect
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import inspect
+from sqlalchemy.orm import Session
 
-from app.core.db import Base, get_db
-from app.main import app
 from app.models.scan_event import ScanEvent
+from app.models.user import ROLE_PROTECTED, User
 from app.services.scan_history import build_history
 
 NOW = datetime(2026, 10, 13, 15, 0, tzinfo=timezone.utc)
 
 
 @pytest.fixture()
-def session_factory(tmp_path) -> sessionmaker:
-    engine = create_engine(f"sqlite:///{tmp_path / 'test.db'}", connect_args={"check_same_thread": False})
-    Base.metadata.create_all(bind=engine)
-    return sessionmaker(autocommit=False, autoflush=False, bind=engine)
+def owner(db: Session) -> User:
+    user = User(email="owner@example.test", display_name="Owner", role=ROLE_PROTECTED, password_hash="x")
+    db.add(user)
+    db.commit()
+    return user
 
 
-@pytest.fixture()
-def db(session_factory) -> Generator[Session, None, None]:
-    session = session_factory()
-    try:
-        yield session
-    finally:
-        session.close()
-
-
-@pytest.fixture()
-def client(session_factory) -> Generator[TestClient, None, None]:
-    def override_get_db() -> Generator[Session, None, None]:
-        session = session_factory()
-        try:
-            yield session
-        finally:
-            session.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    try:
-        yield TestClient(app)
-    finally:
-        app.dependency_overrides.clear()
-
-
-def _event(days_ago: int, score: int, categories: list[str] | None = None, links: int = 0) -> ScanEvent:
+def _event(owner: User, days_ago: int, score: int, categories: list[str] | None = None, links: int = 0) -> ScanEvent:
     return ScanEvent(
+        owner_id=owner.id,
         scanned_at=(NOW - timedelta(days=days_ago)).replace(tzinfo=None),
         score=score,
         flagged=score >= 5,
@@ -62,23 +37,28 @@ def _event(days_ago: int, score: int, categories: list[str] | None = None, links
 
 def test_scan_events_store_no_message_content() -> None:
     columns = {column.name for column in inspect(ScanEvent).columns}
-    assert columns == {"id", "scanned_at", "score", "flagged", "categories", "flagged_link_count"}
+    # owner_id is a user reference, not message content.
+    assert columns == {"id", "owner_id", "scanned_at", "score", "flagged", "categories", "flagged_link_count"}
 
 
-def test_history_aggregates_counts_by_day_and_category(db: Session) -> None:
+def test_history_aggregates_counts_by_day_and_category(db: Session, owner: User) -> None:
+    someone_else = User(email="other@example.test", display_name="Other", role=ROLE_PROTECTED, password_hash="x")
+    db.add(someone_else)
+    db.commit()
     db.add_all(
         [
-            _event(0, 1),
-            _event(0, 9, ["impersonation", "dangerous_link"], links=2),
-            _event(1, 1),
-            _event(1, 6, ["scam_request"]),
-            _event(6, 8, ["impersonation"], links=1),
-            _event(10, 10, ["impersonation"]),  # outside a 7-day window
+            _event(owner, 0, 1),
+            _event(owner, 0, 9, ["impersonation", "dangerous_link"], links=2),
+            _event(owner, 1, 1),
+            _event(owner, 1, 6, ["scam_request"]),
+            _event(owner, 6, 8, ["impersonation"], links=1),
+            _event(owner, 10, 10, ["impersonation"]),  # outside a 7-day window
+            _event(someone_else, 0, 10, ["scam_request"]),  # not this person's
         ]
     )
     db.commit()
 
-    history = build_history(db, days=7, now=NOW)
+    history = build_history(db, owner.id, days=7, now=NOW)
 
     assert history.emails_checked == 5
     assert history.threats_caught == 3
@@ -94,8 +74,8 @@ def test_history_aggregates_counts_by_day_and_category(db: Session) -> None:
     assert history.first_scan_at == NOW - timedelta(days=10)
 
 
-def test_history_with_no_scans_is_all_zeroes(db: Session) -> None:
-    history = build_history(db, days=30, now=NOW)
+def test_history_with_no_scans_is_all_zeroes(db: Session, owner: User) -> None:
+    history = build_history(db, owner.id, days=30, now=NOW)
 
     assert history.emails_checked == 0
     assert history.threats_caught == 0

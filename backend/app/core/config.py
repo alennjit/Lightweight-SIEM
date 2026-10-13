@@ -35,6 +35,19 @@ class Settings(BaseSettings):
 
     url_reputation_api_key: str | None = None
 
+    # Accounts & sessions (non-secret). Browsers treat http://localhost as a
+    # secure context, so Secure cookies work in local dev too — leave this on.
+    session_cookie_secure: bool = True
+    session_ttl_hours: int = 24 * 7
+    # Dashboard origins allowed to call the API with credentials (CORS) and to
+    # make state-changing requests (CSRF origin check). Comma-separated.
+    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+
+    @property
+    def allowed_origin_list(self) -> list[str]:
+        """allowed_origins split into a clean list."""
+        return [origin.strip() for origin in self.allowed_origins.split(",") if origin.strip()]
+
 
 @lru_cache
 def get_settings() -> Settings:

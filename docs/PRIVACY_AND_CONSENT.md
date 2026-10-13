@@ -21,6 +21,11 @@ not cosmetic.
    installs the browser extension themselves, or explicitly walks through
    a guided setup with the monitor present. Credential-sharing or setting
    this up *for* someone without their sign-off is out of scope, full stop.
+   - **How it's enforced:** a monitor can only be linked by redeeming a
+     single-use invite code that the protected person generated in their
+     own account and chose to share (codes expire after 7 days and are
+     stored hashed). Monitors cannot create invites or connect anyone's
+     Gmail; only the protected person can.
 
 2. **The monitor does not get a mirror of the inbox.**
    The monitor sees: that an alert fired, a plain-language summary of the

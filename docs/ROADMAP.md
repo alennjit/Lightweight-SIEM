@@ -10,7 +10,12 @@
    subscription yet — both real next steps.
 3. Heuristic detection engine (`heuristics.py`) with unit tests against
    known-phishing and known-clean sample sets.
-4. Family linking + consent flow (protected person ↔ monitor).
+4. ✅ Accounts + family linking + consent flow (protected person ↔
+   monitor): sessions, invite codes, revocation, per-person data access.
+   Still to do: password reset/change and email verification (need
+   transactional email), a breached-password check, moving the in-memory
+   login throttle to shared storage before running multiple workers, and
+   Alembic migrations before any real data exists.
 5. Alerting: pick one channel first (likely email, lowest integration
    cost) to prove the loop end-to-end, then add push and SMS (Twilio).
 6. Browser extension: link-reputation check + warning interstitial.

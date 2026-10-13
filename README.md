@@ -10,9 +10,10 @@ This is **not** a traditional enterprise SIEM. It's a small, focused
 detection + alerting pipeline built for one household relationship: one
 protected person, one or more monitors.
 
-> Status: the heuristic detection engine, a minimal scoring API, and a
-> working dashboard are built and verified running end to end locally.
-> Nothing is deployed or handling real user data yet. See
+> Status: the detection engine, accounts with consent-based family
+> linking, Gmail OAuth, protection history and the dashboard are built and
+> verified end to end locally. Nothing is deployed or handling real user
+> data yet. See
 > [docs/ROADMAP.md](docs/ROADMAP.md) for sequencing.
 
 **Live demo:** https://alennjit.github.io/Lightweight-SIEM/ — the monitor
@@ -56,7 +57,10 @@ Status legend: ✅ done · 🚧 in progress · 📋 planned · ⏸️ deferred (
 | URL/link reputation checking (external threat intel) | 📋 | Threat intel source TBD — VirusTotal / PhishTank / Safe Browsing. Local URL heuristics (no external calls) already live in the scoring engine above. |
 | Claude-generated risk narrative | 📋 | Only invoked after a heuristic flag, per privacy design |
 | Browser extension (Chrome/Edge, Manifest V3) | 📋 | `browser-extension/` — manifest + stubs only, no logic yet |
-| Monitor ↔ protected-person account linking | 📋 | Invite/consent flow, requires auth (not built) |
+| Accounts, sign-in and sessions | ✅ | `backend/app/api/auth.py` — scrypt password hashing (stdlib), httpOnly + Secure + SameSite=Lax session cookie holding a random token (only its SHA-256 is stored), server-side logout and expiry, login throttling per account and per IP, generic login errors, Origin-check CSRF middleware. |
+| Monitor ↔ protected-person linking (consent flow) | ✅ | `backend/app/api/family.py` — the protected person creates a single-use, 7-day invite code (stored hashed); a monitor redeems it; either side can remove the link at any time. Every alert, scan event and Gmail account belongs to a protected person, and monitors only see people linked to them. |
+| Local test accounts | ✅ | `python -m scripts.seed_test_accounts --reset` — four fictional `.test` accounts with a month of sample data; random passwords written to the gitignored `backend/test-accounts.local.txt`. Refuses to run against anything but a local SQLite file. |
+| Password reset / change, email verification | 📋 | Needs transactional email (see Alerting: email). |
 | Alerting: push notifications | 📋 | |
 | Alerting: SMS (Twilio) | 📋 | |
 | Alerting: email | 📋 | |
@@ -142,8 +146,9 @@ cd backend
 python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
+python -m scripts.seed_test_accounts --reset   # fictional test accounts + sample data
 uvicorn app.main:app --reload
-pytest -v                     # 64 tests as of this writing
+pytest -v                     # 106 tests as of this writing
 ```
 
 Requires environment variables — see `backend/.env.example` once secrets

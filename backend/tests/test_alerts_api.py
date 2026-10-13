@@ -1,40 +1,10 @@
 """Integration tests for the email-scoring and alerts API endpoints.
 
-Uses a temp-file SQLite DB per test via dependency override, and avoids
-running the app's lifespan (which would touch the real dev.db) by not
-using TestClient as a context manager.
+`client` (tests/conftest.py) is signed in as a protected person, so scored
+emails and alerts belong to them.
 """
 
-from collections.abc import Generator
-
-import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-from app.core.db import Base, get_db
-from app.main import app
-
-
-@pytest.fixture()
-def client(tmp_path) -> Generator[TestClient, None, None]:
-    db_path = tmp_path / "test.db"
-    test_engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
-    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
-    Base.metadata.create_all(bind=test_engine)
-
-    def override_get_db() -> Generator:
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override_get_db
-    try:
-        yield TestClient(app)
-    finally:
-        app.dependency_overrides.clear()
 
 
 def test_scoring_a_clean_email_does_not_create_an_alert(client: TestClient) -> None:

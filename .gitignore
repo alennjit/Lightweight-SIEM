@@ -30,3 +30,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local test-account credentials from backend/scripts/seed_test_accounts.py
+test-accounts.local.txt

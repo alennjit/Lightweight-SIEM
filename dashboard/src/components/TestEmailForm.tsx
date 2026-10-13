@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { scoreEmail } from "../api";
 import type { EmailScoreResponse } from "../types";
 
-export function TestEmailForm({ onScored }: { onScored: () => void }) {
+export function TestEmailForm({ personId, onScored }: { personId: number | null; onScored: () => void }) {
   const [senderDomain, setSenderDomain] = useState("");
   const [subject, setSubject] = useState("");
   const [links, setLinks] = useState("");
@@ -16,7 +16,7 @@ export function TestEmailForm({ onScored }: { onScored: () => void }) {
     setSubmitting(true);
     setError(null);
     try {
-      const response = await scoreEmail({
+      const response = await scoreEmail(personId, {
         sender_domain: senderDomain,
         subject,
         links: links

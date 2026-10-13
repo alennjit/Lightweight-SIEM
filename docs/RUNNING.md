@@ -15,6 +15,20 @@ If `.venv` doesn't exist yet: `python -m venv .venv` then
 
 Health check: `curl http://127.0.0.1:8000/health` → `{"status":"ok"}`.
 
+### Test accounts
+
+```bash
+cd backend
+".venv/Scripts/python.exe" -m scripts.seed_test_accounts --reset
+```
+
+Recreates `dev.db` with four fictional accounts (Margaret and Robert are
+protected people with sample data; Daniel is a monitor linked to both; Sam
+is a monitor linked to nobody, for trying the invite flow). Passwords are
+random each run and saved to `backend/test-accounts.local.txt`
+(gitignored). Use `--reset` after any model change — `create_all` can't
+add columns to an existing SQLite file.
+
 ## Dashboard (Vite/React, port 5173)
 
 ```bash

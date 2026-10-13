@@ -17,6 +17,7 @@ from app.core.db import Base
 from app.core.security import encrypt_token
 from app.integrations.gmail_client import GmailMessage, TokenResponse
 from app.models.gmail_account import GmailAccount
+from app.models.user import ROLE_PROTECTED, User
 from app.services import email_ingestion
 
 
@@ -35,8 +36,12 @@ def db(tmp_path, monkeypatch) -> Generator[Session, None, None]:
         get_settings.cache_clear()
 
 
-def _connected_account(expires_in_minutes: int = 55) -> GmailAccount:
+def _connected_account(db: Session, expires_in_minutes: int = 55) -> GmailAccount:
+    owner = User(email="grandma@example.test", display_name="Grandma", role=ROLE_PROTECTED, password_hash="x")
+    db.add(owner)
+    db.commit()
     return GmailAccount(
+        owner_id=owner.id,
         email="grandma@gmail.com",
         encrypted_access_token=encrypt_token("valid-access-token"),
         encrypted_refresh_token=encrypt_token("valid-refresh-token"),
@@ -67,7 +72,7 @@ def _phishing_message(message_id="m2") -> GmailMessage:
 
 
 def test_ingest_creates_alerts_only_for_flagged_messages(db: Session, mocker):
-    account = _connected_account()
+    account = _connected_account(db)
     db.add(account)
     db.commit()
 
@@ -93,7 +98,7 @@ def test_ingest_creates_alerts_only_for_flagged_messages(db: Session, mocker):
 
 
 def test_ingest_refreshes_expired_token_before_fetching(db: Session, mocker):
-    account = _connected_account(expires_in_minutes=-5)  # already expired
+    account = _connected_account(db, expires_in_minutes=-5)  # already expired
     db.add(account)
     db.commit()
     stale_encrypted_token = account.encrypted_access_token
@@ -111,7 +116,7 @@ def test_ingest_refreshes_expired_token_before_fetching(db: Session, mocker):
 
 
 def test_ingest_skips_messages_that_fail_to_fetch(db: Session, mocker):
-    account = _connected_account()
+    account = _connected_account(db)
     db.add(account)
     db.commit()
 
@@ -138,7 +143,7 @@ def test_ingest_skips_messages_that_fail_to_fetch(db: Session, mocker):
 def test_ingest_records_a_scan_event_for_every_message(db: Session, mocker):
     from app.models.scan_event import ScanEvent
 
-    account = _connected_account()
+    account = _connected_account(db)
     db.add(account)
     db.commit()
     mocker.patch(

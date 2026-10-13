@@ -4,6 +4,8 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
+from app.core.passwords import MAX_LENGTH as PASSWORD_MAX
+
 
 class EmailScoreRequest(BaseModel):
     sender_domain: str
@@ -56,6 +58,50 @@ class ProtectionHistoryOut(BaseModel):
     links_flagged: int
     daily: list[DailyCountOut]
     categories: list[CategoryCountOut]
+
+
+class RegisterRequest(BaseModel):
+    email: str = Field(max_length=255)  # format checked in services.accounts
+    password: str = Field(max_length=PASSWORD_MAX)
+    display_name: str = Field(min_length=1, max_length=80)
+    role: str  # "protected" | "monitor" — validated in services.accounts
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(max_length=255)
+    password: str = Field(max_length=PASSWORD_MAX)
+
+
+class PersonOut(BaseModel):
+    id: int
+    display_name: str
+
+
+class MeOut(BaseModel):
+    """Never includes the password hash or session data."""
+
+    id: int
+    email: str
+    display_name: str
+    role: str
+    people: list[PersonOut]  # protected people this user can view
+
+
+class InviteOut(BaseModel):
+    code: str  # shown once; only a hash is stored
+    expires_at: datetime
+
+
+class RedeemInviteRequest(BaseModel):
+    code: str = Field(min_length=4, max_length=20)
+
+
+class FamilyLinkOut(BaseModel):
+    id: int
+    person_id: int  # the other person on the link
+    display_name: str
+    role: str
+    created_at: datetime
 
 
 class GmailAccountOut(BaseModel):

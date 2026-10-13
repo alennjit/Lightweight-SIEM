@@ -46,3 +46,32 @@ export interface ProtectionHistory {
   daily: DailyCount[];
   categories: CategoryCount[];
 }
+
+export type Role = "protected" | "monitor";
+
+export interface Person {
+  id: number;
+  display_name: string;
+}
+
+/** The signed-in user. Never includes credentials — the session lives in an httpOnly cookie. */
+export interface Me {
+  id: number;
+  email: string;
+  display_name: string;
+  role: Role;
+  people: Person[]; // protected people this user can view (just themselves, if protected)
+}
+
+export interface Invite {
+  code: string;
+  expires_at: string;
+}
+
+export interface FamilyLink {
+  id: number;
+  person_id: number; // the other person on the link
+  display_name: string;
+  role: Role;
+  created_at: string;
+}

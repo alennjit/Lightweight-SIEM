@@ -34,9 +34,10 @@ class ProtectionHistory:
     categories: list[tuple[str, int]] = field(default_factory=list)  # most common first
 
 
-def record_scan(db: Session, result: RiskAssessment, link_count: int) -> ScanEvent:
+def record_scan(db: Session, owner_id: int, result: RiskAssessment, link_count: int) -> ScanEvent:
     """Add a ScanEvent for one scored email. The caller owns the commit."""
     event = ScanEvent(
+        owner_id=owner_id,
         score=result.score,
         flagged=result.flagged,
         categories=list(result.categories),
@@ -51,8 +52,10 @@ def _as_utc(dt: datetime) -> datetime:
     return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
-def build_history(db: Session, days: int, now: datetime | None = None) -> ProtectionHistory:
-    """Aggregate the last `days` UTC calendar days (including today) of scan events."""
+def build_history(db: Session, owner_id: int | None, days: int, now: datetime | None = None) -> ProtectionHistory:
+    """Aggregate one protected person's last `days` UTC calendar days (including today).
+
+    owner_id None (a monitor with nobody linked yet) yields an all-zero history."""
     now = now or datetime.now(timezone.utc)
     today = now.date()
     start_day = today - timedelta(days=days - 1)
@@ -61,11 +64,14 @@ def build_history(db: Session, days: int, now: datetime | None = None) -> Protec
     events = list(
         db.scalars(
             select(ScanEvent)
+            .where(ScanEvent.owner_id == owner_id)
             .where(ScanEvent.scanned_at >= window_start.replace(tzinfo=None))
             .order_by(ScanEvent.scanned_at)
         )
     )
-    first_scan = db.scalars(select(ScanEvent.scanned_at).order_by(ScanEvent.scanned_at).limit(1)).first()
+    first_scan = db.scalars(
+        select(ScanEvent.scanned_at).where(ScanEvent.owner_id == owner_id).order_by(ScanEvent.scanned_at).limit(1)
+    ).first()
 
     daily = {start_day + timedelta(days=offset): DayCount(start_day + timedelta(days=offset)) for offset in range(days)}
     categories: Counter[str] = Counter()

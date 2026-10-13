@@ -1,16 +1,14 @@
 """GmailAccount — one OAuth-connected Gmail inbox.
 
-Deliberately not a full `User`/auth model — that comes with the family
-linking + consent flow (see CONTRIBUTING.md "Architecture"), which isn't
-built yet. This is scoped to just proving the OAuth + ingestion path works
-end to end. `FamilyLink` will reference this by id once it exists.
+Owned by the protected person who connected it (app/models/user.py).
+Monitors never see tokens — only alerts derived from the inbox.
 """
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Integer, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
@@ -20,6 +18,7 @@ class GmailAccount(Base):
     __tablename__ = "gmail_accounts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)  # protected person
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
 
     # Fernet-encrypted at rest — see app/core/security.py. Never log these values.

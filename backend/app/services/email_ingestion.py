@@ -80,11 +80,12 @@ def ingest_recent_messages(
             body=message.body_text,
             sender_display_name=message.sender_display_name,
         )
-        record_scan(db, result, link_count=len(message.links))
+        record_scan(db, account.owner_id, result, link_count=len(message.links))
         if not result.flagged:
             continue
 
         alert = Alert(
+            owner_id=account.owner_id,
             sender_domain=message.sender_domain,
             subject=message.subject,
             links=message.links,
