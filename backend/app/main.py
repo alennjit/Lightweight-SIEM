@@ -11,10 +11,12 @@ from app.api.alerts import router as alerts_router
 from app.api.emails import router as emails_router
 from app.api.gmail import router as gmail_router
 from app.api.health import router as health_router
+from app.api.stats import router as stats_router
 from app.core.db import Base, engine
 from app.core.logging_config import configure_logging
 from app.models import alert as _alert  # noqa: F401  (registers table with Base.metadata)
 from app.models import gmail_account as _gmail_account  # noqa: F401  (registers table with Base.metadata)
+from app.models import scan_event as _scan_event  # noqa: F401  (registers table with Base.metadata)
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -41,3 +43,4 @@ app.include_router(health_router)
 app.include_router(emails_router)
 app.include_router(alerts_router)
 app.include_router(gmail_router)
+app.include_router(stats_router)

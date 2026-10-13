@@ -29,6 +29,12 @@
   --critical: #c92a2a;
   --critical-bg: #fce9e9;
 
+  /* Charts — emphasis form: one accent for threats, a de-emphasis gray for
+     clean mail (validated with the dataviz skill's palette checker). */
+  --chart-caught: #ea580c;
+  --chart-clean: #cfc5b7;
+  --chart-grid: #ece5db;
+
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
@@ -67,6 +73,10 @@
     --warning-bg: #2f2806;
     --critical: #f87171;
     --critical-bg: #3a1515;
+
+    --chart-caught: #ea580c;
+    --chart-clean: #4a443c;
+    --chart-grid: #2a2621;
   }
 }
 
@@ -94,6 +104,10 @@
   --warning-bg: #2f2806;
   --critical: #f87171;
   --critical-bg: #3a1515;
+
+  --chart-caught: #ea580c;
+  --chart-clean: #4a443c;
+  --chart-grid: #2a2621;
 }
 
 * {

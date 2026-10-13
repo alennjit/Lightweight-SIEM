@@ -1,6 +1,6 @@
 """Pydantic request/response schemas for the API layer."""
 
-from datetime import datetime
+from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,7 @@ class EmailScoreResponse(BaseModel):
     flagged: bool
     rationale: str
     signals: list[str]
+    categories: list[str] = Field(default_factory=list)
     alert_id: int | None = None
 
 
@@ -31,6 +32,30 @@ class AlertOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class DailyCountOut(BaseModel):
+    date: date
+    checked: int
+    caught: int
+
+
+class CategoryCountOut(BaseModel):
+    category: str
+    count: int
+
+
+class ProtectionHistoryOut(BaseModel):
+    """Aggregates only — no message content ever appears in this response."""
+
+    days: int
+    first_scan_at: datetime | None
+    emails_checked: int
+    threats_caught: int
+    high_risk: int
+    links_flagged: int
+    daily: list[DailyCountOut]
+    categories: list[CategoryCountOut]
 
 
 class GmailAccountOut(BaseModel):

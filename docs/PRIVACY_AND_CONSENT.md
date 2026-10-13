@@ -36,6 +36,11 @@ not cosmetic.
      sent to the Claude API for a narrative explanation. This is the
      highest-sensitivity data flow in the system and must stay scoped to
      already-flagged messages, never bulk-processed.
+   - Protection history counts every scanned message via the
+     `scan_events` table, which is content-free by design: timestamp,
+     score, flagged yes/no, threat categories, and a link *count* for
+     flagged messages. No sender, subject, body or URLs — a test
+     (`test_scan_events_store_no_message_content`) pins the column set.
 
 4. **Disclosure is visible, not buried.**
    Both parties see, in plain language, what the monitor can and cannot

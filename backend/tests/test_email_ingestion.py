@@ -133,3 +133,30 @@ def test_ingest_skips_messages_that_fail_to_fetch(db: Session, mocker):
 
     assert result.messages_checked == 2
     assert len(result.alerts) == 1
+
+
+def test_ingest_records_a_scan_event_for_every_message(db: Session, mocker):
+    from app.models.scan_event import ScanEvent
+
+    account = _connected_account()
+    db.add(account)
+    db.commit()
+    mocker.patch(
+        "app.services.email_ingestion.gmail_client.fetch_recent_message_ids",
+        return_value=["m1", "m2"],
+    )
+    mocker.patch(
+        "app.services.email_ingestion.gmail_client.fetch_message",
+        side_effect=lambda token, message_id: {
+            "m1": _clean_message("m1"),
+            "m2": _phishing_message("m2"),
+        }[message_id],
+    )
+
+    email_ingestion.ingest_recent_messages(db, get_settings(), account)
+
+    events = db.query(ScanEvent).order_by(ScanEvent.id).all()
+    assert [event.flagged for event in events] == [False, True]
+    assert events[0].flagged_link_count == 0
+    assert events[1].flagged_link_count == 1
+    assert "impersonation" in events[1].categories

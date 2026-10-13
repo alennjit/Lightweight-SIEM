@@ -1,5 +1,5 @@
-import { demoAlerts } from "./demoData";
-import type { Alert, EmailScoreRequest, EmailScoreResponse } from "./types";
+import { demoAlerts, demoHistory } from "./demo/demoData";
+import type { Alert, EmailScoreRequest, EmailScoreResponse, ProtectionHistory } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
 
@@ -21,6 +21,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 export function fetchAlerts(): Promise<Alert[]> {
   if (DEMO_MODE) return Promise.resolve(demoAlerts());
   return request<Alert[]>("/api/v1/alerts");
+}
+
+export function fetchHistory(days = 30): Promise<ProtectionHistory> {
+  if (DEMO_MODE) return Promise.resolve(demoHistory());
+  return request<ProtectionHistory>(`/api/v1/stats/history?days=${days}`);
 }
 
 export function scoreEmail(payload: EmailScoreRequest): Promise<EmailScoreResponse> {

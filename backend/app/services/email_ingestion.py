@@ -21,6 +21,7 @@ from app.detection.heuristics import score_email
 from app.integrations import gmail_client
 from app.models.alert import Alert
 from app.models.gmail_account import GmailAccount
+from app.services.scan_history import record_scan
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +80,7 @@ def ingest_recent_messages(
             body=message.body_text,
             sender_display_name=message.sender_display_name,
         )
+        record_scan(db, result, link_count=len(message.links))
         if not result.flagged:
             continue
 

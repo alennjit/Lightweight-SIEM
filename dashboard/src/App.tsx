@@ -1,26 +1,50 @@
 import { useEffect, useState } from "react";
 import { AlertList } from "./components/AlertList";
+import { ProtectionHistory } from "./components/ProtectionHistory";
 import { StatTiles } from "./components/StatTiles";
 import { TestEmailForm } from "./components/TestEmailForm";
-import { DEMO_MODE, fetchAlerts } from "./api";
-import type { Alert } from "./types";
+import { DEMO_MODE, fetchAlerts, fetchHistory } from "./api";
+import type { Alert, ProtectionHistory as History } from "./types";
 import "./App.css";
 
+type Tab = "alerts" | "history";
+
+const TABS: { id: Tab; label: string }[] = [
+  { id: "alerts", label: "Recent alerts" },
+  { id: "history", label: "Protection history" },
+];
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : "Unknown error";
+}
+
 function App() {
+  const [tab, setTab] = useState<Tab>("alerts");
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [history, setHistory] = useState<History | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [alertsError, setAlertsError] = useState<string | null>(null);
+  const [historyError, setHistoryError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetchAlerts()
-      .then((data) => {
-        if (!cancelled) setAlerts(data);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Unknown error");
+    Promise.allSettled([fetchAlerts(), fetchHistory()])
+      .then(([alertsResult, historyResult]) => {
+        if (cancelled) return;
+        if (alertsResult.status === "fulfilled") {
+          setAlerts(alertsResult.value);
+          setAlertsError(null);
+        } else {
+          setAlertsError(errorMessage(alertsResult.reason));
+        }
+        if (historyResult.status === "fulfilled") {
+          setHistory(historyResult.value);
+          setHistoryError(null);
+        } else {
+          setHistoryError(errorMessage(historyResult.reason));
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -34,8 +58,9 @@ function App() {
     <div className="app">
       {DEMO_MODE && (
         <p className="demo-banner" role="note">
-          <strong>Demo</strong> &mdash; sample data only. These messages are fictional; the scores
-          and explanations are real output from the detection engine.{" "}
+          <strong>Demo</strong> &mdash; sample data only. The messages are fictional; every score and
+          explanation is real output from the detection engine. Daily email volumes in the history
+          are illustrative.{" "}
           <a href="https://github.com/alennjit/Lightweight-SIEM">View the source on GitHub</a>
         </p>
       )}
@@ -66,23 +91,47 @@ function App() {
         </div>
       </header>
 
+      <nav className="tabs" role="tablist" aria-label="Dashboard sections">
+        {TABS.map(({ id, label }) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            id={`tab-${id}`}
+            aria-selected={tab === id}
+            aria-controls={`panel-${id}`}
+            className={tab === id ? "tabs__tab is-active" : "tabs__tab"}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
       <main className="app__main">
-        <StatTiles alerts={alerts} loading={loading} />
+        {tab === "alerts" ? (
+          <div className="app__panel" role="tabpanel" id="panel-alerts" aria-labelledby="tab-alerts">
+            <StatTiles alerts={alerts} loading={loading} />
 
-        <section className="app__alerts" aria-labelledby="alerts-heading">
-          <h2 id="alerts-heading">Recent alerts</h2>
-          <AlertList alerts={alerts} loading={loading} error={error} />
-        </section>
+            <section className="app__alerts" aria-label="Recent alerts">
+              <AlertList alerts={alerts} loading={loading} error={alertsError} />
+            </section>
 
-        {!DEMO_MODE && (
-          <details className="dev-tools">
-            <summary>Developer test tool</summary>
-            <p className="dev-tools__hint">
-              For verifying the detection engine during development — not part of the product a
-              real monitor would see.
-            </p>
-            <TestEmailForm onScored={() => setRefreshKey((key) => key + 1)} />
-          </details>
+            {!DEMO_MODE && (
+              <details className="dev-tools">
+                <summary>Developer test tool</summary>
+                <p className="dev-tools__hint">
+                  For verifying the detection engine during development — not part of the product a
+                  real monitor would see.
+                </p>
+                <TestEmailForm onScored={() => setRefreshKey((key) => key + 1)} />
+              </details>
+            )}
+          </div>
+        ) : (
+          <div className="app__panel" role="tabpanel" id="panel-history" aria-labelledby="tab-history">
+            <ProtectionHistory history={history} loading={loading} error={historyError} />
+          </div>
         )}
       </main>
     </div>
