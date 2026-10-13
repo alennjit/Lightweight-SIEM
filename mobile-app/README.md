@@ -5,4 +5,4 @@ Native Android app for on-device notification and SMS scanning, per
 phase 3.
 
 Not started. Do not add implementation code here until the phase 1
-email + browser extension path works end to end — see `CLAUDE.md`.
+email + browser extension path works end to end — see `CONTRIBUTING.md`.

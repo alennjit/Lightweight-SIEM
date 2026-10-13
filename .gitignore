@@ -1,6 +1,9 @@
 # Secrets — never commit real env files, this is a public repo
 .env
 *.env.local
+client_secret_*.json
+*.pem
+*.key
 
 # Python
 *.db

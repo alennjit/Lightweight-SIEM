@@ -1,25 +1,37 @@
 :root {
-  --text: #3f3d45;
-  --text-h: #08060d;
-  --bg: #ffffff;
-  --bg-subtle: #f7f7f9;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #6d28d9;
-  --danger: #b3261e;
-  --danger-bg: #fdecea;
-  --warning: #92600a;
-  --warning-bg: #fef6e6;
-  --safe: #1e6b3f;
-  --safe-bg: #e9f7ef;
+  /* Brand — trustworthy blue/teal (see dataviz skill's validated palette:
+     categorical slot 1 "blue" as primary, slot 5 "aqua" as secondary). */
+  --brand: #2a78d6;
+  --brand-strong: #184f95;
+  --brand-tint: #eaf2fc;
+  --teal: #1baf7a;
+  --teal-tint: #e6f7f0;
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
+  /* Chrome & ink, from the same validated palette */
+  --surface: #fcfcfb;
+  --page: #f9f9f7;
+  --text: #52514e;
+  --text-h: #0b0b0b;
+  --text-muted: #898781;
+  --border: #e1e0d9;
+  --border-strong: rgba(11, 11, 11, 0.1);
+  --code-bg: #f4f3ec;
+
+  /* Status — fixed, never themed, never reused for anything but risk state */
+  --good: #0ca30c;
+  --good-bg: #e9f7e9;
+  --warning: #b8790f;
+  --warning-bg: #fef3de;
+  --critical: #d03b3b;
+  --critical-bg: #fbe9e9;
+
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 16px/150% var(--sans);
   color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
+  background: var(--page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -27,21 +39,53 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --text: #cbd0d8;
-    --text-h: #f3f4f6;
-    --bg: #14151a;
-    --bg-subtle: #1b1c22;
-    --border: #2e303a;
+  :root:where(:not([data-theme="light"])) {
+    --brand: #3987e5;
+    --brand-strong: #86b6ef;
+    --brand-tint: #16233a;
+    --teal: #199e70;
+    --teal-tint: #102921;
+
+    --surface: #1a1a19;
+    --page: #0d0d0d;
+    --text: #c3c2b7;
+    --text-h: #ffffff;
+    --text-muted: #898781;
+    --border: #2c2c2a;
+    --border-strong: rgba(255, 255, 255, 0.1);
     --code-bg: #1f2028;
-    --accent: #a78bfa;
-    --danger: #f2867d;
-    --danger-bg: #3a1c1a;
-    --warning: #f0c674;
-    --warning-bg: #3a2f14;
-    --safe: #6fcf97;
-    --safe-bg: #163826;
+
+    --good: #0ca30c;
+    --good-bg: #12291a;
+    --warning: #fab219;
+    --warning-bg: #332708;
+    --critical: #e66767;
+    --critical-bg: #391616;
   }
+}
+
+:root[data-theme="dark"] {
+  --brand: #3987e5;
+  --brand-strong: #86b6ef;
+  --brand-tint: #16233a;
+  --teal: #199e70;
+  --teal-tint: #102921;
+
+  --surface: #1a1a19;
+  --page: #0d0d0d;
+  --text: #c3c2b7;
+  --text-h: #ffffff;
+  --text-muted: #898781;
+  --border: #2c2c2a;
+  --border-strong: rgba(255, 255, 255, 0.1);
+  --code-bg: #1f2028;
+
+  --good: #0ca30c;
+  --good-bg: #12291a;
+  --warning: #fab219;
+  --warning-bg: #332708;
+  --critical: #e66767;
+  --critical-bg: #391616;
 }
 
 * {

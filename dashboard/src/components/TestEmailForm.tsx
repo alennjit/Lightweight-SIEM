@@ -36,7 +36,6 @@ export function TestEmailForm({ onScored }: { onScored: () => void }) {
 
   return (
     <form className="test-email-form" onSubmit={handleSubmit}>
-      <h2>Test the detection engine</h2>
       <p className="hint">
         Simulates an inbound email through the same heuristic scoring the real ingestion pipeline
         will use. Nothing here sends real mail.

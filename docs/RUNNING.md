@@ -1,9 +1,7 @@
----
-name: run-lightweight-siem
-description: How to launch and browser-drive the Lightweight SIEM backend (FastAPI) and dashboard (Vite/React) on this Windows dev machine, for verifying changes actually work end to end.
----
+# Running Lightweight SIEM Locally
 
-# Running Lightweight SIEM
+How to launch the backend and dashboard and verify a change actually works
+end to end, on Windows.
 
 ## Backend (FastAPI, port 8000)
 
@@ -33,10 +31,10 @@ If `node_modules` doesn't exist yet: `npm install` first. Node/npm live at
 refused) — always use `localhost`, not the IP literal, when curling or
 navigating a browser to it.
 
-## Driving it in a browser (no chromium-cli on this machine)
+## Driving it in a browser
 
-This is a native Windows box, not a Linux container — `chromium-cli` isn't
-available. Use Playwright directly instead:
+This is a native Windows box, not a Linux container, so headless-browser
+CLIs aren't preinstalled. Use Playwright directly instead:
 
 ```bash
 mkdir -p /tmp/lwsiem-e2e && cd /tmp/lwsiem-e2e   # or $TEMP/lwsiem-e2e on Windows
@@ -56,9 +54,8 @@ Delete the scratch directory when done — it's not part of the repo.
 
 ## Stopping
 
-Both dev servers were started as background tasks in past sessions and
-stopped via `TaskStop` on their task IDs once verification was done. Kill
-by port if needed: find the PID bound to 8000/5173 and stop it.
+Find the process bound to port 8000 (backend) or 5173 (dashboard) and stop
+it, or close the terminal each was started in.
 
 ## What This Verifies
 

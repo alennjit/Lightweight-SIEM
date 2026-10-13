@@ -1,8 +1,8 @@
-# CLAUDE.md — Lightweight SIEM
+# Contributing — Lightweight SIEM
 
-Project-specific context for Claude Code. This extends (does not replace) the
-global `~/CLAUDE.md` conventions — Python type hints, `pathlib`, `logging`
-over `print`, secrets from env vars only, `subprocess.run(shell=False)` only,
+Engineering conventions and project context for anyone working in this
+repo. Baseline conventions: Python type hints, `pathlib`, `logging` over
+`print`, secrets from env vars only, `subprocess.run(shell=False)` only,
 pytest with mocked external calls, explicit over clever.
 
 ---
@@ -10,11 +10,11 @@ pytest with mocked external calls, explicit over clever.
 ## What This Is
 
 A subscription SIEM/protection product for non-technical people (commonly
-parents/grandparents) who are frequent targets of phishing email and smishing
-(fake text) scams. A tech-savvy family member ("the monitor") gets real-time
-alerts when the protected person receives — or worse, interacts with — a
-malicious email or link, so they can intervene before money or credentials
-are lost.
+parents/grandparents) who are frequent targets of phishing email and
+smishing (fake text) scams. A tech-savvy family member ("the monitor") gets
+real-time alerts when the protected person receives — or worse, interacts
+with — a malicious email or link, so they can intervene before money or
+credentials are lost.
 
 This is an Alen Frash / Diamond Technologies LLC side product, not an MSP
 client deliverable. Public repo — this doubles as a portfolio piece, so
@@ -44,8 +44,8 @@ clients, or any secret/API key.**
   as named constants, not inline strings.
 - **Repo**: public on GitHub, named `Lightweight-SIEM`.
 - **Dashboard frontend**: React + TypeScript + Vite. Built and verified
-  running end to end against the backend (see
-  `.claude/skills/run-lightweight-siem/`) — no longer open.
+  running end to end against the backend (see `docs/RUNNING.md`) — no
+  longer open.
 
 ## Not Yet Decided
 
@@ -62,25 +62,30 @@ clients, or any secret/API key.**
 ## Architecture (target shape)
 
 Current build reality vs. this target: README.md's feature table is the
-source of truth for what's actually implemented. As of now, `models/`
-only has `Alert` (not yet `User`/`FamilyLink`/`Subscription` — those come
-with the auth/consent flow, not built yet), and `detection/heuristics.py`
-is fully implemented while `claude_analyzer.py`/`url_reputation.py` remain
-stubs (external API/provider decisions still open, see "Not Yet Decided").
+source of truth for what's actually implemented. As of now, `models/` has
+`Alert` and `GmailAccount` (not yet `User`/`FamilyLink`/`Subscription` —
+those come with the auth/consent flow, not built yet — `GmailAccount` is
+deliberately scoped to just "one connected inbox," see its docstring).
+`detection/heuristics.py` and `integrations/gmail_client.py` are fully
+implemented; `claude_analyzer.py`/`url_reputation.py` remain stubs
+(external API/provider decisions still open, see "Not Yet Decided"). Gmail
+ingestion is manually triggered via API call — no background poller or
+Pub/Sub push subscription yet.
 
 ```
 Lightweight-SIEM/
-├── CLAUDE.md
+├── CONTRIBUTING.md
 ├── README.md                    ← feature list + status, kept current every session
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── PRIVACY_AND_CONSENT.md   ← non-negotiable: read before touching ingestion code
-│   └── ROADMAP.md
+│   ├── ROADMAP.md
+│   └── RUNNING.md                ← how to launch + browser-verify the app locally
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              ← FastAPI app entry
 │   │   ├── core/                ← config (env-var loading), security, logging setup
-│   │   ├── detection/           ← heuristics.py, claude_analyzer.py, url_reputation.py
+│   │   ├── detection/            ← heuristics.py, claude_analyzer.py, url_reputation.py
 │   │   ├── integrations/        ← gmail_client.py, outlook_client.py, stripe_client.py,
 │   │   │                          twilio_client.py, email_alert_client.py
 │   │   ├── models/              ← DB models: User, FamilyLink, Alert, Subscription
@@ -133,6 +138,20 @@ violate it rather than silently building around it.
   never included in error messages.
 - New backend module → matching pytest file in the same session unless told
   otherwise.
+
+## Frontend Security
+
+The dashboard (and eventually the browser extension) render phishing-
+flagged email/message content, which is attacker-influenced by definition.
+Rules that apply anywhere that content is rendered:
+
+- Never use `dangerouslySetInnerHTML` (React) or raw `innerHTML =` on
+  anything derived from email/message content. Default to plain-text
+  rendering (JSX interpolation) — it's safe by default.
+- Every link surfaced from flagged content is inert: rendered as text, not
+  a clickable `<a href>` pointing at the original URL.
+- Session/OAuth tokens live server-side only, never in `localStorage` or a
+  non-`httpOnly` cookie.
 
 ## What NOT to Do
 

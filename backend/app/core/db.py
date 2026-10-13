@@ -1,7 +1,7 @@
 """Database engine and session setup.
 
 SQLite by default for local dev — DATABASE_URL is swappable via env var
-once a production database is chosen (see CLAUDE.md "Not Yet Decided").
+once a production database is chosen (see CONTRIBUTING.md "Not Yet Decided").
 """
 
 from collections.abc import Generator

@@ -24,7 +24,7 @@ demands it — no premature microservices).
     lookups. Produces a 1–10 risk score with a rationale, always.
   - `url_reputation.py` — link reputation lookups against a threat intel
     source (VirusTotal / PhishTank / Google Safe Browsing — TBD, see
-    CLAUDE.md "Not Yet Decided").
+    CONTRIBUTING.md "Not Yet Decided").
   - `claude_analyzer.py` — invoked only after a heuristic flag. Produces
     the plain-language risk narrative shown to the monitor. Prompts live
     in a dedicated constants module, never inlined.
@@ -92,6 +92,6 @@ pipeline involved.
 
 ## Open Architectural Questions
 
-See CLAUDE.md → "Not Yet Decided" for the live list (frontend framework,
+See CONTRIBUTING.md → "Not Yet Decided" for the live list (frontend framework,
 hosting target, billing provider, threat intel source). Don't resolve these
 unilaterally in code — surface them.

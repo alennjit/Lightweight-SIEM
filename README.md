@@ -41,11 +41,11 @@ Status legend: ✅ done · 🚧 in progress · 📋 planned · ⏸️ deferred (
 
 | Feature | Status | Notes |
 |---|---|---|
-| Project scaffold (CLAUDE.md, docs, folder structure) | ✅ | |
+| Project scaffold (CONTRIBUTING.md, docs, folder structure) | ✅ | |
 | Phishing heuristic scoring engine | ✅ | `backend/app/detection/heuristics.py` — sender/link brand impersonation, IP-literal and punycode links, URL shorteners, abused TLDs, urgency/credential-harvesting language, free-webmail-claiming-to-be-a-bank. 13 unit tests. |
 | Email-scoring API + Alert persistence | ✅ | `POST /api/v1/emails/score`, `GET /api/v1/alerts` — SQLAlchemy models, SQLite for dev. 3 integration tests. |
-| Monitor web dashboard (React + TypeScript + Vite) | ✅ | `dashboard/` — alert list + a "test the detection engine" form wired to the live API. Verified end to end in a real browser (see `.claude/skills/run-lightweight-siem/`). |
-| Email OAuth integration (Gmail) | 📋 | `backend/app/integrations/gmail_client.py` — needs real OAuth credentials, not yet started |
+| Monitor web dashboard (React + TypeScript + Vite) | ✅ | `dashboard/` — alert list + a "test the detection engine" form wired to the live API. Verified end to end in a real browser (see `docs/RUNNING.md`). |
+| Email OAuth integration (Gmail) | ✅ | `backend/app/integrations/gmail_client.py` + `/api/v1/auth/gmail/authorize`+`/callback` + `POST /api/v1/gmail/accounts/{id}/ingest`. Tokens encrypted at rest (`app/core/security.py`). Manual-trigger ingestion only — no push/polling scheduler yet. 23 tests, all mocked (no real Google account exercised yet — needs real OAuth credentials in `.env` to verify against a live inbox). |
 | Email OAuth integration (Outlook/Microsoft Graph) | 📋 | `backend/app/integrations/outlook_client.py` |
 | URL/link reputation checking (external threat intel) | 📋 | Threat intel source TBD — VirusTotal / PhishTank / Safe Browsing. Local URL heuristics (no external calls) already live in the scoring engine above. |
 | Claude-generated risk narrative | 📋 | Only invoked after a heuristic flag, per privacy design |
@@ -112,12 +112,13 @@ block/warn on malicious links at click time, independent of the email path.
 
 ```
 Lightweight-SIEM/
-├── CLAUDE.md                    ← full project context for Claude Code
+├── CONTRIBUTING.md              ← full project context and conventions
 ├── README.md                    ← you are here
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── PRIVACY_AND_CONSENT.md
-│   └── ROADMAP.md
+│   ├── ROADMAP.md
+│   └── RUNNING.md               ← how to launch + browser-verify locally
 ├── backend/                     ← FastAPI service
 ├── browser-extension/           ← Manifest V3 extension
 ├── dashboard/                   ← monitor web dashboard (frontend, TBD framework)

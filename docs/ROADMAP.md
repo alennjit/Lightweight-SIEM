@@ -4,7 +4,10 @@
 
 1. Backend skeleton: FastAPI app, config/env loading, health check, DB
    models, auth scaffolding.
-2. Gmail OAuth integration → fetch headers/links for new mail.
+2. ✅ Gmail OAuth integration → fetch headers/links for new mail. Connect
+   flow + manual-trigger ingestion built and tested (mocked); not yet
+   exercised against a real Google account, and no background poller/push
+   subscription yet — both real next steps.
 3. Heuristic detection engine (`heuristics.py`) with unit tests against
    known-phishing and known-clean sample sets.
 4. Family linking + consent flow (protected person ↔ monitor).

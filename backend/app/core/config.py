@@ -17,6 +17,11 @@ class Settings(BaseSettings):
 
     google_oauth_client_id: str | None = None
     google_oauth_client_secret: str | None = None
+    google_oauth_redirect_uri: str = "http://localhost:8000/api/v1/auth/gmail/callback"
+
+    # Fernet key (44-char urlsafe base64) used to encrypt OAuth tokens at rest.
+    # Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+    secret_key: str | None = None
 
     microsoft_oauth_client_id: str | None = None
     microsoft_oauth_client_secret: str | None = None

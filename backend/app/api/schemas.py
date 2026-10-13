@@ -31,3 +31,20 @@ class AlertOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class GmailAccountOut(BaseModel):
+    """Never includes token fields — those never leave the backend."""
+
+    id: int
+    email: str
+    created_at: datetime
+    last_ingested_at: datetime | None
+
+    model_config = {"from_attributes": True}
+
+
+class IngestResponse(BaseModel):
+    account_email: str
+    messages_checked: int
+    alerts_created: list[AlertOut]
