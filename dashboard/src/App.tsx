@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertList } from "./components/AlertList";
 import { StatTiles } from "./components/StatTiles";
 import { TestEmailForm } from "./components/TestEmailForm";
-import { fetchAlerts } from "./api";
+import { DEMO_MODE, fetchAlerts } from "./api";
 import type { Alert } from "./types";
 import "./App.css";
 
@@ -32,6 +32,13 @@ function App() {
 
   return (
     <div className="app">
+      {DEMO_MODE && (
+        <p className="demo-banner" role="note">
+          <strong>Demo</strong> &mdash; sample data only. These messages are fictional; the scores
+          and explanations are real output from the detection engine.{" "}
+          <a href="https://github.com/alennjit/Lightweight-SIEM">View the source on GitHub</a>
+        </p>
+      )}
       <header className="app__header">
         <div className="brand">
           <span className="brand__icon" aria-hidden="true">
@@ -67,14 +74,16 @@ function App() {
           <AlertList alerts={alerts} loading={loading} error={error} />
         </section>
 
-        <details className="dev-tools">
-          <summary>Developer test tool</summary>
-          <p className="dev-tools__hint">
-            For verifying the detection engine during development — not part of the product a
-            real monitor would see.
-          </p>
-          <TestEmailForm onScored={() => setRefreshKey((key) => key + 1)} />
-        </details>
+        {!DEMO_MODE && (
+          <details className="dev-tools">
+            <summary>Developer test tool</summary>
+            <p className="dev-tools__hint">
+              For verifying the detection engine during development — not part of the product a
+              real monitor would see.
+            </p>
+            <TestEmailForm onScored={() => setRefreshKey((key) => key + 1)} />
+          </details>
+        )}
       </main>
     </div>
   );

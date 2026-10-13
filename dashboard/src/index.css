@@ -1,29 +1,33 @@
 :root {
-  /* Brand — trustworthy blue/teal (see dataviz skill's validated palette:
-     categorical slot 1 "blue" as primary, slot 5 "aqua" as secondary). */
-  --brand: #2a78d6;
-  --brand-strong: #184f95;
-  --brand-tint: #eaf2fc;
-  --teal: #1baf7a;
-  --teal-tint: #e6f7f0;
+  /* Brand — warm orange accent. Used sparingly (logo, primary actions,
+     focus) so it never reads as an alarm state. --brand-solid is the
+     deeper shade that keeps white button text at WCAG AA contrast. */
+  --brand: #ea580c;
+  --brand-solid: #c2410c;
+  --brand-strong: #9a3412;
+  --brand-tint: #fff1e6;
+  --on-brand: #ffffff;
+  --teal: #0f9f6e;
+  --teal-tint: #e3f6ee;
 
-  /* Chrome & ink, from the same validated palette */
-  --surface: #fcfcfb;
-  --page: #f9f9f7;
-  --text: #52514e;
-  --text-h: #0b0b0b;
-  --text-muted: #898781;
-  --border: #e1e0d9;
-  --border-strong: rgba(11, 11, 11, 0.1);
-  --code-bg: #f4f3ec;
+  /* Chrome & ink — warm neutrals to sit with the orange */
+  --surface: #fffdfa;
+  --page: #faf6f1;
+  --text: #57524b;
+  --text-h: #1c1712;
+  --text-muted: #8a8279;
+  --border: #ebe3d8;
+  --border-strong: rgba(28, 23, 18, 0.12);
+  --code-bg: #f5efe7;
 
-  /* Status — fixed, never themed, never reused for anything but risk state */
-  --good: #0ca30c;
-  --good-bg: #e9f7e9;
-  --warning: #b8790f;
-  --warning-bg: #fef3de;
-  --critical: #d03b3b;
-  --critical-bg: #fbe9e9;
+  /* Status — fixed, never reused for anything but risk state. Warning is
+     shifted toward gold so it stays distinct from the orange brand. */
+  --good: #15803d;
+  --good-bg: #e8f6ec;
+  --warning: #a16207;
+  --warning-bg: #fdf6d3;
+  --critical: #c92a2a;
+  --critical-bg: #fce9e9;
 
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
@@ -40,52 +44,56 @@
 
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
-    --brand: #3987e5;
-    --brand-strong: #86b6ef;
-    --brand-tint: #16233a;
-    --teal: #199e70;
-    --teal-tint: #102921;
+    --brand: #fb923c;
+    --brand-solid: #fb923c;
+    --brand-strong: #fdba74;
+    --brand-tint: #3a1f0d;
+    --on-brand: #1c0f05;
+    --teal: #2bb98a;
+    --teal-tint: #0f2a20;
 
-    --surface: #1a1a19;
-    --page: #0d0d0d;
-    --text: #c3c2b7;
-    --text-h: #ffffff;
-    --text-muted: #898781;
-    --border: #2c2c2a;
+    --surface: #1c1916;
+    --page: #110f0d;
+    --text: #cbc4b9;
+    --text-h: #fdfaf5;
+    --text-muted: #8f877c;
+    --border: #2f2a24;
     --border-strong: rgba(255, 255, 255, 0.1);
-    --code-bg: #1f2028;
+    --code-bg: #26211c;
 
-    --good: #0ca30c;
+    --good: #4ade80;
     --good-bg: #12291a;
-    --warning: #fab219;
-    --warning-bg: #332708;
-    --critical: #e66767;
-    --critical-bg: #391616;
+    --warning: #facc15;
+    --warning-bg: #2f2806;
+    --critical: #f87171;
+    --critical-bg: #3a1515;
   }
 }
 
 :root[data-theme="dark"] {
-  --brand: #3987e5;
-  --brand-strong: #86b6ef;
-  --brand-tint: #16233a;
-  --teal: #199e70;
-  --teal-tint: #102921;
+  --brand: #fb923c;
+  --brand-solid: #fb923c;
+  --brand-strong: #fdba74;
+  --brand-tint: #3a1f0d;
+  --on-brand: #1c0f05;
+  --teal: #2bb98a;
+  --teal-tint: #0f2a20;
 
-  --surface: #1a1a19;
-  --page: #0d0d0d;
-  --text: #c3c2b7;
-  --text-h: #ffffff;
-  --text-muted: #898781;
-  --border: #2c2c2a;
+  --surface: #1c1916;
+  --page: #110f0d;
+  --text: #cbc4b9;
+  --text-h: #fdfaf5;
+  --text-muted: #8f877c;
+  --border: #2f2a24;
   --border-strong: rgba(255, 255, 255, 0.1);
-  --code-bg: #1f2028;
+  --code-bg: #26211c;
 
-  --good: #0ca30c;
+  --good: #4ade80;
   --good-bg: #12291a;
-  --warning: #fab219;
-  --warning-bg: #332708;
-  --critical: #e66767;
-  --critical-bg: #391616;
+  --warning: #facc15;
+  --warning-bg: #2f2806;
+  --critical: #f87171;
+  --critical-bg: #3a1515;
 }
 
 * {

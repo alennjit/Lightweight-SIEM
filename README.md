@@ -15,6 +15,10 @@ protected person, one or more monitors.
 > Nothing is deployed or handling real user data yet. See
 > [docs/ROADMAP.md](docs/ROADMAP.md) for sequencing.
 
+**Live demo:** https://alennjit.github.io/Lightweight-SIEM/ — the monitor
+dashboard with sample data and no backend. The messages are fictional; each
+score and rationale is real output from the detection engine.
+
 ---
 
 ## How It Works (target v1)
@@ -45,6 +49,7 @@ Status legend: ✅ done · 🚧 in progress · 📋 planned · ⏸️ deferred (
 | Phishing heuristic scoring engine | ✅ | `backend/app/detection/heuristics.py` — sender/link brand impersonation, IP-literal and punycode links, URL shorteners, abused TLDs, urgency/credential-harvesting language, free-webmail-claiming-to-be-a-bank. 13 unit tests. |
 | Email-scoring API + Alert persistence | ✅ | `POST /api/v1/emails/score`, `GET /api/v1/alerts` — SQLAlchemy models, SQLite for dev. 3 integration tests. |
 | Monitor web dashboard (React + TypeScript + Vite) | ✅ | `dashboard/` — alert list + a "test the detection engine" form wired to the live API. Verified end to end in a real browser (see `docs/RUNNING.md`). |
+| Public demo (GitHub Pages) | ✅ | `npm run build:demo` — sample alerts from `dashboard/src/demoData.ts`, no backend, strict CSP. Deployed by `.github/workflows/pages.yml` on every push to `master` that touches `dashboard/`. |
 | Email OAuth integration (Gmail) | ✅ | `backend/app/integrations/gmail_client.py` + `/api/v1/auth/gmail/authorize`+`/callback` + `POST /api/v1/gmail/accounts/{id}/ingest`. Tokens encrypted at rest (`app/core/security.py`). Manual-trigger ingestion only — no push/polling scheduler yet. 23 tests, all mocked (no real Google account exercised yet — needs real OAuth credentials in `.env` to verify against a live inbox). |
 | Email OAuth integration (Outlook/Microsoft Graph) | 📋 | `backend/app/integrations/outlook_client.py` |
 | URL/link reputation checking (external threat intel) | 📋 | Threat intel source TBD — VirusTotal / PhishTank / Safe Browsing. Local URL heuristics (no external calls) already live in the scoring engine above. |
@@ -121,7 +126,7 @@ Lightweight-SIEM/
 │   └── RUNNING.md               ← how to launch + browser-verify locally
 ├── backend/                     ← FastAPI service
 ├── browser-extension/           ← Manifest V3 extension
-├── dashboard/                   ← monitor web dashboard (frontend, TBD framework)
+├── dashboard/                   ← monitor web dashboard (React + TypeScript + Vite)
 └── mobile-app/                  ← phase 2 placeholder, empty for now
 ```
 
@@ -137,7 +142,7 @@ python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 uvicorn app.main:app --reload
-pytest -v                     # 16 tests as of this writing
+pytest -v                     # 40 tests as of this writing
 ```
 
 Requires environment variables — see `backend/.env.example` once secrets
@@ -154,6 +159,9 @@ npm run dev        # http://localhost:5173, expects the backend on :8000
 ```
 
 CORS is already configured on the backend for `localhost:5173`.
+
+`npm run build:demo` builds the backend-free public demo instead (served
+from `/Lightweight-SIEM/`); preview it with `npx vite preview --mode demo`.
 
 ---
 

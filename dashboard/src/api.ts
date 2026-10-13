@@ -1,6 +1,10 @@
+import { demoAlerts } from "./demoData";
 import type { Alert, EmailScoreRequest, EmailScoreResponse } from "./types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+
+/** True in the public GitHub Pages build (`vite build --mode demo`), which has no backend. */
+export const DEMO_MODE = import.meta.env.MODE === "demo";
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -15,6 +19,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export function fetchAlerts(): Promise<Alert[]> {
+  if (DEMO_MODE) return Promise.resolve(demoAlerts());
   return request<Alert[]>("/api/v1/alerts");
 }
 
